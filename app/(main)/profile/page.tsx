@@ -6,6 +6,8 @@ import { useAuth } from '@/components/providers/AuthProvider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { User, Mail, Camera, Save, Loader2, Lock, Key } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default function ProfilePage() {
     const { user, updateUserProfile, changePassword } = useAuth();
     const [name, setName] = useState('');
