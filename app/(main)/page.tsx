@@ -9,6 +9,8 @@ import { ArrowUp, ArrowDown, Wallet, CalendarRange } from 'lucide-react';
 import { format, isSameMonth, parseISO } from 'date-fns';
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
 
+export const dynamic = 'force-dynamic';
+
 export default function Dashboard() {
   const { transactions } = useAppData();
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));

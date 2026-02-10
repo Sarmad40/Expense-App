@@ -6,6 +6,8 @@ import { IncomeForm } from '@/components/forms/IncomeForm';
 import { TransactionList } from '@/components/dashboard/TransactionList';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+export const dynamic = 'force-dynamic';
+
 export default function IncomePage() {
     return (
         <div className="space-y-6">

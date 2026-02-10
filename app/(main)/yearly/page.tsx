@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getYearlySummary } from '@/lib/analytics';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default function YearlyPage() {
     const { transactions } = useAppData();
     const [year, setYear] = useState(new Date().getFullYear());
