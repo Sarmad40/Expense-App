@@ -6,7 +6,9 @@ import { useAppData } from '@/components/providers/AppProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getMonthlySummary, getYearlySummary } from '@/lib/analytics';
 import { format } from 'date-fns';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import dynamic from 'next/dynamic';
+
+const ComparisonChart = dynamic(() => import('@/components/charts/ComparisonChart'), { ssr: false });
 
 export default function ComparisonPage() {
     const { transactions } = useAppData();
@@ -185,17 +187,7 @@ export default function ComparisonPage() {
                     <CardTitle>Side-by-Side Comparison</CardTitle>
                 </CardHeader>
                 <CardContent className="h-[400px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <Tooltip formatter={(val) => formatCurrency(val as number)} />
-                            <Legend />
-                            <Bar dataKey={data1.label} fill="#3b82f6" name={data1.label} />
-                            <Bar dataKey={data2.label} fill="#f97316" name={data2.label} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    <ComparisonChart data={chartData} data1Label={data1.label} data2Label={data2.label} />
                 </CardContent>
             </Card>
         </div>
