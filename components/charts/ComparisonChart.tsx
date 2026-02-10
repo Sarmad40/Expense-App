@@ -14,6 +14,12 @@ export default function ComparisonChart({ data, data1Label, data2Label }: Compar
     const formatCurrency = (val: number) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(val);
 
     return (
+        <div className="w-full h-full flex items-center justify-center bg-muted/20 rounded-lg">
+            <p>Chart Loading...</p>
+        </div>
+    );
+    /*
+    return (
         <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -26,4 +32,5 @@ export default function ComparisonChart({ data, data1Label, data2Label }: Compar
             </BarChart>
         </ResponsiveContainer>
     );
+    */
 }
