@@ -167,7 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             isAuthenticated: !!user,
             loading
         }}>
-            {!loading && children}
+            {children}
         </AuthContext.Provider>
     );
 }
