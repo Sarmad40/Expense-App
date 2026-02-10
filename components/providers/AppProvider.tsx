@@ -114,7 +114,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const { error } = await supabase.from('transactions').insert(dbTransaction);
 
         if (error) {
-            console.error('Error adding transaction:', error);
+            console.error('Error adding transaction:', error.message);
             // Revert optimistic update
             setTransactions((prev) => prev.filter((t) => t.id !== newId));
         }
