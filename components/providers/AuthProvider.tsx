@@ -4,14 +4,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/types';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
     user: User | null;
     loginWithEmail: (email: string, pass: string) => Promise<void>;
-    registerWithEmail: (email: string, pass: string, name: string) => Promise<void>;
+    registerWithEmail: (email: string, pass: string, name: string) => Promise<{ success: boolean; needsVerification: boolean }>;
     logout: () => Promise<void>;
     updateUserProfile: (name: string, photoURL?: string) => Promise<void>;
     changePassword: (oldPass: string, newPass: string) => Promise<boolean>;
+    sendPasswordResetEmail: (email: string) => Promise<void>;
     isAuthenticated: boolean;
     loading: boolean;
 }
@@ -25,119 +28,131 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         // Check for active session
-        const storedUser = localStorage.getItem('expense_app_current_user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
-        setLoading(false);
+        const initSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            handleSession(session);
+            setLoading(false);
+        };
+
+        initSession();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            handleSession(session);
+            setLoading(false);
+        });
+
+        return () => subscription.unsubscribe();
     }, []);
+
+    const handleSession = (session: Session | null) => {
+        if (session?.user) {
+            const newUser: User = {
+                id: session.user.id,
+                username: session.user.user_metadata.username || session.user.email?.split('@')[0] || 'User',
+                email: session.user.email,
+                photoURL: session.user.user_metadata.photoURL || '',
+                createdAt: session.user.created_at,
+            };
+            setUser(newUser);
+        } else {
+            setUser(null);
+        }
+    };
 
     const loginWithEmail = async (email: string, pass: string) => {
         setLoading(true);
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 500));
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password: pass,
+        });
 
-        const usersJson = localStorage.getItem('expense_app_users');
-        const users: any[] = usersJson ? JSON.parse(usersJson) : [];
-
-        const foundUser = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === pass);
-
-        if (foundUser) {
-            // Don't store password in current session
-            const { password, ...safeUser } = foundUser;
-            setUser(safeUser);
-            localStorage.setItem('expense_app_current_user', JSON.stringify(safeUser));
+        if (error) {
             setLoading(false);
-            router.push('/');
-        } else {
-            setLoading(false);
-            throw new Error('Invalid email or password');
+            throw new Error(error.message);
         }
+        // onAuthStateChange will handle user state update
+        router.push('/');
     };
 
     const registerWithEmail = async (email: string, pass: string, name: string) => {
         setLoading(true);
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 500));
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password: pass,
+            options: {
+                data: {
+                    username: name,
+                },
+            },
+        });
 
-        const usersJson = localStorage.getItem('expense_app_users');
-        const users: any[] = usersJson ? JSON.parse(usersJson) : [];
-
-        if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+        if (error) {
             setLoading(false);
-            throw new Error('Email is already registered');
+            throw new Error(error.message);
         }
 
-        const newUser = {
-            id: crypto.randomUUID(),
-            username: name,
-            email,
-            password: pass, // Storing plain text for demo purposes (as per user request for internal auth)
-            photoURL: '',
-            createdAt: new Date().toISOString()
-        };
+        // Check if session is missing (implies email verification needed)
+        if (data.user && !data.session) {
+            setLoading(false);
+            return { success: true, needsVerification: true };
+        }
 
-        users.push(newUser);
-        localStorage.setItem('expense_app_users', JSON.stringify(users));
-
-        // Auto login
-        const { password, ...safeUser } = newUser;
-        setUser(safeUser);
-        localStorage.setItem('expense_app_current_user', JSON.stringify(safeUser));
-
-        setLoading(false);
+        // If session exists, user is logged in
         router.push('/');
+        return { success: true, needsVerification: false };
     };
 
     const updateUserProfile = async (name: string, photoURL?: string) => {
         if (!user) return;
 
-        const updatedUser = { ...user, username: name, photoURL: photoURL || '' };
-        setUser(updatedUser);
-        localStorage.setItem('expense_app_current_user', JSON.stringify(updatedUser));
+        const updates: { username?: string; photoURL?: string } = {};
+        if (name) updates.username = name;
+        if (photoURL) updates.photoURL = photoURL;
 
-        // Update in main user list too
-        const usersJson = localStorage.getItem('expense_app_users');
-        if (usersJson) {
-            const users: any[] = JSON.parse(usersJson);
-            const index = users.findIndex(u => u.id === user.id);
-            if (index !== -1) {
-                // Keep the password!
-                const existingUser = users[index];
-                users[index] = { ...existingUser, username: name, photoURL: photoURL || '' };
-                localStorage.setItem('expense_app_users', JSON.stringify(users));
-            }
+        const { error } = await supabase.auth.updateUser({
+            data: updates,
+        });
+
+        if (error) {
+            throw new Error(error.message);
         }
+
+        // Also update the 'profiles' table if it exists and RLS allows
+        // This is done via trigger usually, but for updates we might need manual call if the trigger only handles insert
+        // The SQL schema set up has a policy "Users can update own profile." so we can do:
+        await supabase.from('profiles').update({ username: name, photo_url: photoURL }).eq('id', user.id);
+
+        // Optimistic update
+        setUser((prev) => prev ? { ...prev, ...updates } : null);
     };
 
     const changePassword = async (oldPass: string, newPass: string) => {
         if (!user) return false;
 
-        // In a real app we wouldn't fetch all users to check password, but for local storage we must
-        const usersJson = localStorage.getItem('expense_app_users');
-        if (!usersJson) return false;
+        // Note: Supabase doesn't require old password for signed-in users
+        const { error } = await supabase.auth.updateUser({
+            password: newPass
+        });
 
-        const users: any[] = JSON.parse(usersJson);
-        const index = users.findIndex(u => u.id === user.id);
-
-        if (index === -1) return false;
-
-        const currentUserRecord = users[index];
-
-        if (currentUserRecord.password !== oldPass) {
-            throw new Error('Incorrect current password');
+        if (error) {
+            throw new Error(error.message);
         }
-
-        // Update password
-        users[index] = { ...currentUserRecord, password: newPass };
-        localStorage.setItem('expense_app_users', JSON.stringify(users));
         return true;
     };
 
     const logout = async () => {
+        await supabase.auth.signOut();
         setUser(null);
-        localStorage.removeItem('expense_app_current_user');
         router.push('/login');
+    };
+
+    const sendPasswordResetEmail = async (email: string) => {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/update-password`,
+        });
+        if (error) {
+            throw new Error(error.message);
+        }
     };
 
     return (
@@ -148,6 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             logout,
             updateUserProfile,
             changePassword,
+            sendPasswordResetEmail,
             isAuthenticated: !!user,
             loading
         }}>

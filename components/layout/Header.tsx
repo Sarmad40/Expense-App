@@ -18,6 +18,10 @@ export function Header() {
         }
     };
 
+    if (pathname === '/') {
+        return null;
+    }
+
     return (
         <header className="flex items-center justify-between mb-8 pb-4 border-b">
             <div>

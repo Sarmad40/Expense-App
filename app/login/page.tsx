@@ -8,10 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Wallet, Mail, Lock, User as UserIcon, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
-    const { loginWithEmail, registerWithEmail, loading } = useAuth();
+    const { loginWithEmail, registerWithEmail, sendPasswordResetEmail, loading } = useAuth();
     const router = useRouter();
 
     const [isLogin, setIsLogin] = useState(true);
+    const [isForgotPassword, setIsForgotPassword] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState(''); // Only for register
@@ -20,26 +21,46 @@ export default function LoginPage() {
 
 
 
+    const [successMessage, setSuccessMessage] = useState('');
+
     const handleEmailSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setSuccessMessage('');
         setIsLoading(true);
 
         try {
+            if (isForgotPassword) {
+                await sendPasswordResetEmail(email);
+                setSuccessMessage('Password reset link sent! Check your email.');
+                return;
+            }
+
             if (isLogin) {
                 await loginWithEmail(email, password);
             } else {
                 if (!name) {
                     throw new Error('Please enter your name');
                 }
-                await registerWithEmail(email, password, name);
+                const result = await registerWithEmail(email, password, name);
+                if (result.needsVerification) {
+                    setSuccessMessage('Registration successful! Please check your email to confirm your account.');
+                    setIsLogin(true); // Switch to login screen
+                }
             }
         } catch (err: any) {
             console.error(err);
             let msg = 'Authentication failed.';
-            if (err.code === 'auth/invalid-credential') msg = 'Invalid email or password.';
-            if (err.code === 'auth/email-already-in-use') msg = 'Email is already registered.';
+
+            // Common Supabase Auth Errors
+            if (err.code === 'auth/invalid-credential') msg = 'Invalid email or password. If you used this app before, please create a new account.';
+            if (err.code === 'auth/email-already-in-use') msg = 'This email is already registered. Please log in instead.';
             if (err.code === 'auth/weak-password') msg = 'Password should be at least 6 characters.';
+            if (err.message && err.message.includes('security purposes')) msg = 'Too many attempts. Please wait 30 seconds before trying again.';
+            if (err.message && (err.message.includes('rate limit') || err.message.includes('Too many requests'))) msg = 'Too many attempts. Please wait a while before trying again.';
+            if (err.message && err.message.includes('Email not confirmed')) msg = 'Please check your email to confirm your account before logging in.';
+            if (err.message && err.message.includes('Invalid login credentials')) msg = 'Invalid email or password. If you registered recently, check your email for verification.';
+
             setError(msg);
         } finally {
             setIsLoading(false);
@@ -54,10 +75,12 @@ export default function LoginPage() {
                         <Wallet className="h-7 w-7" />
                     </div>
                     <CardTitle className="text-2xl font-bold text-indigo-950">
-                        {isLogin ? 'Welcome Back' : 'Create Account'}
+                        {isForgotPassword ? 'Reset Password' : (isLogin ? 'Welcome Back' : 'Create Account')}
                     </CardTitle>
                     <CardDescription>
-                        {isLogin ? 'Sign in to access your finances' : 'Get started with tracking your expenses'}
+                        {isForgotPassword
+                            ? 'Enter your email to receive a password reset link'
+                            : (isLogin ? 'Sign in to access your finances' : 'Get started with tracking your expenses')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -95,19 +118,38 @@ export default function LoginPage() {
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Password</label>
-                                    <div className="relative">
-                                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                        <input
-                                            type="password"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            placeholder="••••••••"
-                                            className="flex h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                        />
+                                {!isForgotPassword && (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-sm font-medium">Password</label>
+                                            {isLogin && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setIsForgotPassword(true); setError(''); setSuccessMessage(''); }}
+                                                    className="text-xs text-primary hover:underline"
+                                                >
+                                                    Forgot Password?
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="relative">
+                                            <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                            <input
+                                                type="password"
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                placeholder="••••••••"
+                                                className="flex h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                            />
+                                        </div>
                                     </div>
-                                </div>
+                                )}
+
+                                {successMessage && (
+                                    <div className="text-sm text-green-600 font-medium bg-green-50 p-2 rounded text-center">
+                                        {successMessage}
+                                    </div>
+                                )}
 
                                 {error && (
                                     <div className="text-sm text-red-500 font-medium bg-red-50 p-2 rounded text-center">
@@ -123,7 +165,7 @@ export default function LoginPage() {
                                     {isLoading ? (
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     ) : (
-                                        isLogin ? 'Login' : 'Create Account'
+                                        isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Login' : 'Create Account')
                                     )}
                                 </button>
                             </form>
@@ -132,13 +174,23 @@ export default function LoginPage() {
                 </CardContent>
                 <CardFooter>
                     <div className="w-full text-center">
-                        <button
-                            type="button"
-                            onClick={() => { setIsLogin(!isLogin); setError(''); }}
-                            className="text-sm text-primary hover:underline hover:text-primary/80"
-                        >
-                            {isLogin ? "Don't have an account? Sign up" : "Already have an account? Login"}
-                        </button>
+                        {isForgotPassword ? (
+                            <button
+                                type="button"
+                                onClick={() => { setIsForgotPassword(false); setError(''); setSuccessMessage(''); }}
+                                className="text-sm text-primary hover:underline hover:text-primary/80"
+                            >
+                                Back to Login
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => { setIsLogin(!isLogin); setError(''); setSuccessMessage(''); }}
+                                className="text-sm text-primary hover:underline hover:text-primary/80"
+                            >
+                                {isLogin ? "Don't have an account? Sign up" : "Already have an account? Login"}
+                            </button>
+                        )}
                     </div>
                 </CardFooter>
             </Card>

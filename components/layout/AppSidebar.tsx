@@ -3,9 +3,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Wallet, TrendingDown, Calendar, Menu, X, ArrowRightLeft, User } from 'lucide-react';
+import { LayoutDashboard, Wallet, TrendingDown, Calendar, Menu, X, ArrowRightLeft, User, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 const items = [
     {
@@ -43,6 +44,7 @@ const items = [
 export function AppSidebar() {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
+    const { logout } = useAuth();
 
     const toggleSidebar = () => setIsOpen(!isOpen);
 
@@ -105,7 +107,7 @@ export function AppSidebar() {
                         })}
                     </nav>
 
-                    <div className="p-6 border-t border-indigo-50/50 bg-gray-50/50">
+                    <div className="p-4 border-t border-indigo-50/50 bg-gray-50/50 space-y-4">
                         <div className="bg-indigo-50/50 rounded-2xl p-4 text-center">
                             <p className="text-sm font-semibold text-indigo-900">Pro Plan</p>
                             <p className="text-xs text-indigo-600/80 mt-1">Unlock advanced features</p>
@@ -113,6 +115,14 @@ export function AppSidebar() {
                                 Upgrade Now
                             </button>
                         </div>
+
+                        <button
+                            onClick={logout}
+                            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors group"
+                        >
+                            <LogOut className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                            Sign Out
+                        </button>
                     </div>
                 </div>
             </aside>
