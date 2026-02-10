@@ -5,6 +5,8 @@ import React, { useState } from 'react';
 import { useAppData } from '@/components/providers/AppProvider';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import nextDynamic from 'next/dynamic';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getYearlySummary } from '@/lib/analytics';
 
 const YearlyCharts = nextDynamic(() => import('@/components/charts/YearlyCharts').then(mod => mod.YearlyCharts), { ssr: false });
 
