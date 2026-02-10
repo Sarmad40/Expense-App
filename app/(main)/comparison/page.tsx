@@ -6,9 +6,9 @@ import { useAppData } from '@/components/providers/AppProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getMonthlySummary, getYearlySummary } from '@/lib/analytics';
 import { format } from 'date-fns';
-import dynamic from 'next/dynamic';
+import nextDynamic from 'next/dynamic';
 
-const ComparisonChart = dynamic(() => import('@/components/charts/ComparisonChart'), { ssr: false });
+const ComparisonChart = nextDynamic(() => import('@/components/charts/ComparisonChart'), { ssr: false });
 
 export const dynamic = 'force-dynamic';
 
