@@ -10,6 +10,8 @@ import dynamic from 'next/dynamic';
 
 const ComparisonChart = dynamic(() => import('@/components/charts/ComparisonChart'), { ssr: false });
 
+export const dynamic = 'force-dynamic';
+
 export default function ComparisonPage() {
     const { transactions } = useAppData();
     const [compareMode, setCompareMode] = useState<'monthly' | 'yearly'>('monthly');
