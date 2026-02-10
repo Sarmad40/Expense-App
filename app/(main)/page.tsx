@@ -7,7 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { getMonthlySummary } from '@/lib/analytics';
 import { ArrowUp, ArrowDown, Wallet, CalendarRange } from 'lucide-react';
 import { format, isSameMonth, parseISO } from 'date-fns';
-import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
+import nextDynamic from 'next/dynamic';
+
+const DashboardCharts = nextDynamic(() => import('@/components/dashboard/DashboardCharts').then(mod => mod.DashboardCharts), { ssr: false });
 
 export const dynamic = 'force-dynamic';
 
