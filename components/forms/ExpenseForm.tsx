@@ -19,39 +19,35 @@ const DEFAULT_CATEGORIES: ExpenseCategory[] = [
 ];
 
 export function ExpenseForm() {
-    const { addTransaction, editTransaction, editingTransaction, setEditingTransaction, customCategories, addCustomCategory } = useAppData();
+    const { addTransaction, editTransaction, editingTransaction, setEditingTransaction, customCategories, addCustomCategory, customIncomeSources } = useAppData();
     const [amount, setAmount] = useState('');
-    const [paymentSource, setPaymentSource] = useState<IncomeSource>('Salary');
+    const [paymentSource, setPaymentSource] = useState<string>('Salary');
     const [category, setCategory] = useState<string>('House Rent');
     const [customCategoryInput, setCustomCategoryInput] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [note, setNote] = useState('');
 
     const allCategories = [...DEFAULT_CATEGORIES, ...customCategories, 'Other'];
+    const defaultSources = ['Salary', 'Freelance', 'Family', 'Credit Card'];
+    const allPaymentSources = [...defaultSources, ...customIncomeSources];
 
     useEffect(() => {
         if (editingTransaction && editingTransaction.type === 'expense') {
             setAmount(editingTransaction.amount.toString());
-            setPaymentSource((editingTransaction.paymentSource as IncomeSource) || 'Salary');
+            const src = editingTransaction.paymentSource || 'Salary';
+            setPaymentSource(src);
 
             const cat = editingTransaction.category || 'Other';
             if (allCategories.includes(cat)) {
                 setCategory(cat);
             } else {
-                // Should be in custom categories, but if not, treat as Other logic or add it?
-                if (customCategories.includes(cat)) {
-                    setCategory(cat);
-                } else {
-                    // Maybe it is a custom category that was deleted or something? 
-                    // Or we just set it.
-                    setCategory(cat);
-                }
+                setCategory(cat);
             }
 
             setDate(editingTransaction.date);
             setNote(editingTransaction.note || '');
         }
-    }, [editingTransaction, customCategories]); // Add specific dependencies if needed
+    }, [editingTransaction, customCategories, customIncomeSources]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -79,7 +75,7 @@ export function ExpenseForm() {
                 amount: formattedAmount,
                 date,
                 type: 'expense',
-                paymentSource, // Using the property definition from Transaction type
+                paymentSource,
                 category: finalCategory,
                 note,
             });
@@ -140,13 +136,12 @@ export function ExpenseForm() {
                     <label className="text-sm font-medium">Payment Source</label>
                     <select
                         value={paymentSource}
-                        onChange={(e) => setPaymentSource(e.target.value as IncomeSource)}
+                        onChange={(e) => setPaymentSource(e.target.value)}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
-                        <option value="Salary">Salary</option>
-                        <option value="Freelance">Freelance</option>
-                        <option value="Family">Family</option>
-                        <option value="Credit Card">Credit Card</option>
+                        {allPaymentSources.map((s) => (
+                            <option key={s} value={s}>{s}</option>
+                        ))}
                     </select>
                 </div>
                 <div className="space-y-2">

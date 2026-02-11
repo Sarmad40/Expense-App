@@ -7,26 +7,40 @@ import { IncomeSource } from '@/types';
 import { Plus, Save, X } from 'lucide-react';
 
 export function IncomeForm() {
-    const { addTransaction, editTransaction, editingTransaction, setEditingTransaction } = useAppData();
+    const { addTransaction, editTransaction, editingTransaction, setEditingTransaction, customIncomeSources, addCustomIncomeSource } = useAppData();
     const [amount, setAmount] = useState('');
-    const [source, setSource] = useState<IncomeSource>('Salary');
+    const [source, setSource] = useState<string>('Salary');
+    const [customSourceInput, setCustomSourceInput] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+
+    const defaultSources = ['Salary', 'Freelance', 'Family', 'Credit Card'];
+    const allSources = [...defaultSources, ...customIncomeSources, 'Other'];
 
     useEffect(() => {
         if (editingTransaction && editingTransaction.type === 'income') {
             setAmount(editingTransaction.amount.toString());
-            setSource((editingTransaction.source as IncomeSource) || 'Salary');
+            const src = editingTransaction.source || 'Salary';
+
+            if (defaultSources.includes(src) || customIncomeSources.includes(src)) {
+                setSource(src);
+            } else {
+                setSource(src); // It might be a custom source not yet loaded or just string
+            }
+
             setDate(editingTransaction.date);
-        } else {
-            // Only reset if we are NOT editing anything (or if we switched from exp to inc?) 
-            // Actually simpler: if not editing, keep defaults or clear? 
-            // Keeping defaults is fine, but we should clear if we cancel.
         }
-    }, [editingTransaction]);
+    }, [editingTransaction, customIncomeSources]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!amount || !date) return;
+
+        let finalSource = source;
+        if (source === 'Other') {
+            if (!customSourceInput.trim()) return;
+            finalSource = customSourceInput.trim();
+            addCustomIncomeSource(finalSource);
+        }
 
         const formattedAmount = parseFloat(amount);
 
@@ -34,30 +48,30 @@ export function IncomeForm() {
             editTransaction(editingTransaction.id, {
                 amount: formattedAmount,
                 date,
-                source,
-                note: `Income from ${source}`,
+                source: finalSource,
+                note: `Income from ${finalSource}`,
             });
         } else {
             addTransaction({
                 amount: formattedAmount,
                 date,
                 type: 'income',
-                source,
-                note: `Income from ${source}`,
+                source: finalSource,
+                note: `Income from ${finalSource}`,
             });
         }
 
         // Reset form
         setAmount('');
         setSource('Salary');
-        // Keep date as is or reset? Resetting to today is usually better or keep. 
-        // Let's reset to today if we want, or keep last.
+        setCustomSourceInput('');
     };
 
     const handleCancel = () => {
         setEditingTransaction(null);
         setAmount('');
         setSource('Salary');
+        setCustomSourceInput('');
         setDate(new Date().toISOString().split('T')[0]);
     }
 
@@ -90,13 +104,12 @@ export function IncomeForm() {
                     <label className="text-sm font-medium">Source</label>
                     <select
                         value={source}
-                        onChange={(e) => setSource(e.target.value as IncomeSource)}
+                        onChange={(e) => setSource(e.target.value)}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
-                        <option value="Salary">Salary</option>
-                        <option value="Freelance">Freelance</option>
-                        <option value="Family">Family</option>
-                        <option value="Credit Card">Credit Card</option>
+                        {allSources.map((s) => (
+                            <option key={s} value={s}>{s}</option>
+                        ))}
                     </select>
                 </div>
                 <div className="space-y-2">
@@ -109,6 +122,20 @@ export function IncomeForm() {
                         required
                     />
                 </div>
+
+                {source === 'Other' && (
+                    <div className="space-y-2 md:col-span-3 animate-in fade-in slide-in-from-top-1">
+                        <label className="text-sm font-medium">Custom Source Name</label>
+                        <input
+                            type="text"
+                            value={customSourceInput}
+                            onChange={(e) => setCustomSourceInput(e.target.value)}
+                            placeholder="e.g., Side Hustle, Gift"
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            required
+                        />
+                    </div>
+                )}
             </div>
             <div className="flex gap-2">
                 <button

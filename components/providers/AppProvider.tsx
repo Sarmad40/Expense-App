@@ -21,6 +21,8 @@ interface AppContextType {
     deleteTransaction: (id: string) => void;
     customCategories: string[];
     addCustomCategory: (category: string) => void;
+    customIncomeSources: string[];
+    addCustomIncomeSource: (source: string) => void;
     editingTransaction: Transaction | null;
     setEditingTransaction: (transaction: Transaction | null) => void;
 }
@@ -31,6 +33,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const { user, isAuthenticated } = useAuth();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [customCategories, setCustomCategories] = useState<string[]>([]);
+    const [customIncomeSources, setCustomIncomeSources] = useState<string[]>([]);
     const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
     const [isLoaded, setIsLoaded] = useState(false);
 
@@ -39,6 +42,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (!isAuthenticated || !user) {
             setTransactions([]);
             setCustomCategories([]);
+            setCustomIncomeSources([]);
             setIsLoaded(false);
             return;
         }
@@ -78,6 +82,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
             if (categoriesData) {
                 setCustomCategories(categoriesData.map((c: any) => c.category));
+            }
+
+            // Fetch custom income sources
+            const { data: sourcesData, error: sourcesError } = await supabase
+                .from('custom_income_sources')
+                .select('source');
+
+            if (sourcesData) {
+                setCustomIncomeSources(sourcesData.map((s: any) => s.source));
             }
 
             setIsLoaded(true);
@@ -183,6 +196,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const addCustomIncomeSource = async (source: string) => {
+        if (!user) return;
+        if (customIncomeSources.includes(source)) return;
+
+        setCustomIncomeSources((prev) => [...prev, source]);
+
+        const { error } = await supabase.from('custom_income_sources').insert({
+            user_id: user.id,
+            source: source
+        });
+
+        if (error) {
+            console.error('Error adding custom income source:', error);
+            setCustomIncomeSources((prev) => prev.filter(s => s !== source));
+        }
+    };
+
     return (
         <AppContext.Provider
             value={{
@@ -192,6 +222,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 deleteTransaction,
                 customCategories,
                 addCustomCategory,
+                customIncomeSources,
+                addCustomIncomeSource,
                 editingTransaction,
                 setEditingTransaction,
             }}

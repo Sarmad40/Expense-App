@@ -1,5 +1,5 @@
 
-export type IncomeSource = 'Salary' | 'Freelance' | 'Family' | 'Credit Card';
+export type IncomeSource = 'Salary' | 'Freelance' | 'Family' | 'Credit Card' | string;
 
 export type ExpenseCategory =
   | 'House Rent'
@@ -47,5 +47,6 @@ export interface MonthlyData {
 export interface AppState {
   transactions: Transaction[];
   customCategories: string[];
+  customIncomeSources: string[];
   currency: string;
 }

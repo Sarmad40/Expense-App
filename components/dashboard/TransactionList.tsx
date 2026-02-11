@@ -11,13 +11,22 @@ interface TransactionListProps {
 }
 
 export function TransactionList({ type }: TransactionListProps) {
-    const { transactions, deleteTransaction, setEditingTransaction } = useAppData();
+    const { transactions, deleteTransaction, setEditingTransaction, customIncomeSources } = useAppData();
+    const [filterSource, setFilterSource] = React.useState<string>('All');
+
+    const defaultSources = ['Salary', 'Freelance', 'Family', 'Credit Card'];
+    const allPaymentSources = ['All', ...defaultSources, ...customIncomeSources];
 
     const filteredTransactions = transactions
         .filter((t) => t.type === type)
+        .filter((t) => {
+            if (type === 'income') return true; // No payment source filter for income list usually
+            if (filterSource === 'All') return true;
+            return t.paymentSource === filterSource;
+        })
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    if (filteredTransactions.length === 0) {
+    if (transactions.filter(t => t.type === type).length === 0) {
         return (
             <div className="text-center p-8 text-muted-foreground border rounded-lg border-dashed">
                 No {type} transactions found.
@@ -27,54 +36,74 @@ export function TransactionList({ type }: TransactionListProps) {
 
     return (
         <div className="space-y-4">
-            <h3 className="text-lg font-medium capitalize">Recent {type}s</h3>
-            <div className="border rounded-lg overflow-hidden">
-                <table className="w-full text-sm text-left">
-                    <thead className="bg-muted text-muted-foreground">
-                        <tr>
-                            <th className="px-4 py-3 font-medium">Date</th>
-                            <th className="px-4 py-3 font-medium">Source/Category</th>
-                            <th className="px-4 py-3 font-medium text-right">Amount</th>
-                            <th className="px-4 py-3 font-medium text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                        {filteredTransactions.map((t) => (
-                            <tr key={t.id} className="hover:bg-muted/50">
-                                <td className="px-4 py-3">{t.date}</td>
-                                <td className="px-4 py-3">
-                                    {type === 'income' ? t.source : t.category}
-                                    {t.paymentSource && <span className="text-xs text-muted-foreground block">via {t.paymentSource}</span>}
-                                </td>
-                                <td className="px-4 py-3 text-right font-medium">
-                                    {new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR' }).format(t.amount)}
-                                </td>
-                                <td className="px-4 py-3 text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <button
-                                            onClick={() => {
-                                                setEditingTransaction(t);
-                                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                                            }}
-                                            className="text-primary hover:text-primary/80 p-1 rounded-md transition-colors"
-                                            title="Edit"
-                                        >
-                                            <Edit className="h-4 w-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => deleteTransaction(t.id)}
-                                            className="text-destructive hover:text-destructive/80 p-1 rounded-md transition-colors"
-                                            title="Delete"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+            <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium capitalize">Recent {type}s</h3>
+                {type === 'expense' && (
+                    <select
+                        value={filterSource}
+                        onChange={(e) => setFilterSource(e.target.value)}
+                        className="h-8 rounded-md border border-input bg-background px-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                        {allPaymentSources.map(s => (
+                            <option key={s} value={s}>{s === 'All' ? 'All Sources' : s}</option>
                         ))}
-                    </tbody>
-                </table>
+                    </select>
+                )}
             </div>
+
+            {filteredTransactions.length === 0 ? (
+                <div className="text-center p-8 text-muted-foreground border rounded-lg border-dashed">
+                    No expenses found for this source.
+                </div>
+            ) : (
+                <div className="border rounded-lg overflow-hidden">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-muted text-muted-foreground">
+                            <tr>
+                                <th className="px-4 py-3 font-medium">Date</th>
+                                <th className="px-4 py-3 font-medium">Source/Category</th>
+                                <th className="px-4 py-3 font-medium text-right">Amount</th>
+                                <th className="px-4 py-3 font-medium text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                            {filteredTransactions.map((t) => (
+                                <tr key={t.id} className="hover:bg-muted/50">
+                                    <td className="px-4 py-3">{t.date}</td>
+                                    <td className="px-4 py-3">
+                                        {type === 'income' ? t.source : t.category}
+                                        {t.paymentSource && <span className="text-xs text-muted-foreground block">via {t.paymentSource}</span>}
+                                    </td>
+                                    <td className="px-4 py-3 text-right font-medium">
+                                        {new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR' }).format(t.amount)}
+                                    </td>
+                                    <td className="px-4 py-3 text-right">
+                                        <div className="flex justify-end gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    setEditingTransaction(t);
+                                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                }}
+                                                className="text-primary hover:text-primary/80 p-1 rounded-md transition-colors"
+                                                title="Edit"
+                                            >
+                                                <Edit className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => deleteTransaction(t.id)}
+                                                className="text-destructive hover:text-destructive/80 p-1 rounded-md transition-colors"
+                                                title="Delete"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
         </div>
     );
 }
