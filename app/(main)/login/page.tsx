@@ -3,13 +3,13 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Wallet, Mail, Lock, User as UserIcon, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
     const { loginWithEmail, registerWithEmail, sendPasswordResetEmail, loading } = useAuth();
-    const router = useRouter();
+    // const router = useRouter();
 
     const [isLogin, setIsLogin] = useState(true);
     const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -48,18 +48,20 @@ export default function LoginPage() {
                     setIsLogin(true); // Switch to login screen
                 }
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
             let msg = 'Authentication failed.';
 
             // Common Supabase Auth Errors
-            if (err.code === 'auth/invalid-credential') msg = 'Invalid email or password. If you used this app before, please create a new account.';
-            if (err.code === 'auth/email-already-in-use') msg = 'This email is already registered. Please log in instead.';
-            if (err.code === 'auth/weak-password') msg = 'Password should be at least 6 characters.';
-            if (err.message && err.message.includes('security purposes')) msg = 'Too many attempts. Please wait 30 seconds before trying again.';
-            if (err.message && (err.message.includes('rate limit') || err.message.includes('Too many requests'))) msg = 'Too many attempts. Please wait a while before trying again.';
-            if (err.message && err.message.includes('Email not confirmed')) msg = 'Please check your email to confirm your account before logging in.';
-            if (err.message && err.message.includes('Invalid login credentials')) msg = 'Invalid email or password. If you registered recently, check your email for verification.';
+            // Type guard to access properties safely
+            const errorObj = err as { code?: string; message?: string };
+            if (errorObj.code === 'auth/invalid-credential') msg = 'Invalid email or password. If you used this app before, please create a new account.';
+            if (errorObj.code === 'auth/email-already-in-use') msg = 'This email is already registered. Please log in instead.';
+            if (errorObj.code === 'auth/weak-password') msg = 'Password should be at least 6 characters.';
+            if (errorObj.message && errorObj.message.includes('security purposes')) msg = 'Too many attempts. Please wait 30 seconds before trying again.';
+            if (errorObj.message && (errorObj.message.includes('rate limit') || errorObj.message.includes('Too many requests'))) msg = 'Too many attempts. Please wait a while before trying again.';
+            if (errorObj.message && errorObj.message.includes('Email not confirmed')) msg = 'Please check your email to confirm your account before logging in.';
+            if (errorObj.message && errorObj.message.includes('Invalid login credentials')) msg = 'Invalid email or password. If you registered recently, check your email for verification.';
 
             setError(msg);
         } finally {

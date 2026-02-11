@@ -63,9 +63,10 @@ export default function ProfilePage() {
             setPasswordMessage('Password changed successfully!');
             setCurrentPassword('');
             setNewPassword('');
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            setPasswordMessage(error.message || 'Failed to change password.');
+            const errorObj = error as { message?: string };
+            setPasswordMessage(errorObj.message || 'Failed to change password.');
         } finally {
             setIsPasswordLoading(false);
         }
@@ -89,7 +90,10 @@ export default function ProfilePage() {
                             <div className="relative">
                                 <div className="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center border-4 border-white shadow-md overflow-hidden">
                                     {photoURL ? (
-                                        <img src={photoURL} alt={name} className="w-full h-full object-cover" />
+                                        <div className="w-full h-full relative">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={photoURL} alt={name} className="w-full h-full object-cover" />
+                                        </div>
                                     ) : (
                                         <User className="h-10 w-10 text-indigo-400" />
                                     )}

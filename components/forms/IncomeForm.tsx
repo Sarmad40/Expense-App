@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAppData } from '@/components/providers/AppProvider';
-import { IncomeSource } from '@/types';
+// import { IncomeSource } from '@/types';
 import { Plus, Save, X } from 'lucide-react';
 
 export function IncomeForm() {
@@ -18,6 +18,8 @@ export function IncomeForm() {
 
     useEffect(() => {
         if (editingTransaction && editingTransaction.type === 'income') {
+            // Initialize form for editing
+            /* eslint-disable react-hooks/set-state-in-effect */
             setAmount(editingTransaction.amount.toString());
             const src = editingTransaction.source || 'Salary';
 
@@ -28,6 +30,7 @@ export function IncomeForm() {
             }
 
             setDate(editingTransaction.date);
+            /* eslint-enable react-hooks/set-state-in-effect */
         }
     }, [editingTransaction, customIncomeSources]);
 

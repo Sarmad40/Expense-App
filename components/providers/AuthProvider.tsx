@@ -26,6 +26,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
+    const handleSession = (session: Session | null) => {
+        if (session?.user) {
+            const newUser: User = {
+                id: session.user.id,
+                username: session.user.user_metadata.username || session.user.email?.split('@')[0] || 'User',
+                email: session.user.email,
+                photoURL: session.user.user_metadata.photoURL || '',
+                createdAt: session.user.created_at,
+            };
+            setUser(newUser);
+        } else {
+            setUser(null);
+        }
+    };
+
     useEffect(() => {
         // Check for active session
         const initSession = async () => {
@@ -58,20 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => subscription.unsubscribe();
     }, []);
 
-    const handleSession = (session: Session | null) => {
-        if (session?.user) {
-            const newUser: User = {
-                id: session.user.id,
-                username: session.user.user_metadata.username || session.user.email?.split('@')[0] || 'User',
-                email: session.user.email,
-                photoURL: session.user.user_metadata.photoURL || '',
-                createdAt: session.user.created_at,
-            };
-            setUser(newUser);
-        } else {
-            setUser(null);
-        }
-    };
+
 
     const loginWithEmail = async (email: string, pass: string) => {
         setLoading(true);

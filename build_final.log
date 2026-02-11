@@ -1,0 +1,36 @@
+
+> expense-app@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 1 errors:
+./components/providers/AuthProvider.tsx:76:11
+Ecmascript file had an error
+[0m [90m 74 |[39m     }[33m,[39m [])[33m;[39m
+ [90m 75 |[39m
+[31m[1m>[22m[39m[90m 76 |[39m     [36mconst[39m handleSession [33m=[39m (session[33m:[39m [33mSession[39m [33m|[39m [36mnull[39m) [33m=>[39m {
+ [90m    |[39m           [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 77 |[39m         [36mif[39m (session[33m?[39m[33m.[39muser) {
+ [90m 78 |[39m             [36mconst[39m newUser[33m:[39m [33mUser[39m [33m=[39m {
+ [90m 79 |[39m                 id[33m:[39m session[33m.[39muser[33m.[39mid[33m,[39m[0m
+
+the name `handleSession` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./components/providers/AuthProvider.tsx [Client Component Browser]
+    ./app/(main)/login/page.tsx [Client Component Browser]
+    ./app/(main)/login/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./components/providers/AuthProvider.tsx [Client Component SSR]
+    ./app/(main)/login/page.tsx [Client Component SSR]
+    ./app/(main)/login/page.tsx [Server Component]
+
+
+    at <unknown> (./components/providers/AuthProvider.tsx:76:11)

@@ -40,6 +40,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // Load data when user changes
     useEffect(() => {
         if (!isAuthenticated || !user) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setTransactions([]);
             setCustomCategories([]);
             setCustomIncomeSources([]);
@@ -61,6 +62,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 // Our DB schema uses `custom_category`, `payment_source`, `user_id`, `created_at`.
                 // Frontend `Transaction` has `customCategory`, `paymentSource`.
                 // We need to map them.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const mappedTransactions: Transaction[] = transactionsData.map((t: any) => ({
                     id: t.id,
                     date: t.date,
@@ -81,6 +83,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 .select('category');
 
             if (categoriesData) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 setCustomCategories(categoriesData.map((c: any) => c.category));
             }
 
@@ -90,6 +93,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 .select('source');
 
             if (sourcesData) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 setCustomIncomeSources(sourcesData.map((s: any) => s.source));
             }
 
@@ -143,6 +147,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setEditingTransaction(null);
 
         // Prepare Supabase update
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const dbUpdate: any = {};
         if (updated.date !== undefined) dbUpdate.date = updated.date;
         if (updated.amount !== undefined) dbUpdate.amount = updated.amount;

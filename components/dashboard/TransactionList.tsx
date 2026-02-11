@@ -1,9 +1,8 @@
-
 'use client';
 
 import React from 'react';
 import { useAppData } from '@/components/providers/AppProvider';
-import { Transaction } from '@/types';
+// import { Transaction } from '@/types';
 import { Trash2, Edit } from 'lucide-react';
 
 interface TransactionListProps {
@@ -13,61 +12,93 @@ interface TransactionListProps {
 export function TransactionList({ type }: TransactionListProps) {
     const { transactions, deleteTransaction, setEditingTransaction, customIncomeSources } = useAppData();
     const [filterSource, setFilterSource] = React.useState<string>('All');
-    const [filterType, setFilterType] = React.useState<'all' | 'income' | 'expense'>('all'); // Internal filter for 'all' mode
+    const [filterType, setFilterType] = React.useState<'all' | 'income' | 'expense'>('all');
 
-    const defaultSources = ['Salary', 'Freelance', 'Family', 'Credit Card'];
-    const allPaymentSources = ['All', ...defaultSources, ...customIncomeSources];
+    // Initialize/Sync filterType based on props
+    React.useEffect(() => {
+        if (type !== 'all') {
+            setFilterType(type);
+        } else {
+            setFilterType('all');
+        }
+        setFilterSource('All'); // Reset source when entering/changing type context
+    }, [type]);
+
+    // Derived sources
+    const expensePaymentSources = ['Salary', 'Freelance', 'Family', 'Credit Card', ...customIncomeSources];
+    const incomeSources = ['Salary', 'Freelance', 'Family', ...customIncomeSources];
+
+    const availableSources = React.useMemo(() => {
+        if (filterType === 'expense') return ['All', ...expensePaymentSources];
+        if (filterType === 'income') return ['All', ...incomeSources];
+        return ['All'];
+    }, [filterType, customIncomeSources, expensePaymentSources, incomeSources]);
 
     const filteredTransactions = transactions
-        .filter((t) => type === 'all' ? true : t.type === type)
         .filter((t) => {
-            // If type is 'all', we might want internal type filtering too? For now let's keep it simple or align with 'expense' filter logic if needed.
-            // But the original code only filtered paymentSource for expenses.
-            // Let's keep paymentSource filter only active if we are strictly looking at expenses OR if the transaction IS an expense?
-            // Simpler: Only show filter dropdown if type is 'expense'. 
+            // 1. Filter by Type
+            if (type !== 'all') return t.type === type; // Strict prop enforcement
+            if (filterType !== 'all') return t.type === filterType;
+            return true;
+        })
+        .filter((t) => {
+            // 2. Filter by Source
+            if (filterSource === 'All') return true;
 
-            // If we want to filter by payment source in 'all' view, it's complicated because income doesn't have it.
-            // So for 'all' view, let's just disable payment source filter for now to keep it simple, or only apply it to expenses.
-
-            if (type === 'expense' && filterSource !== 'All') {
+            if (t.type === 'income') {
+                return t.source === filterSource;
+            }
+            if (t.type === 'expense') {
                 return t.paymentSource === filterSource;
             }
             return true;
         })
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    if (transactions.filter(t => type === 'all' ? true : t.type === type).length === 0) {
-        return (
-            <div className="text-center p-8 text-muted-foreground border rounded-lg border-dashed">
-                No {type === 'all' ? 'transactions' : type + 's'} found.
-            </div>
-        );
-    }
-
     return (
         <div className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h3 className="text-lg font-medium capitalize">Recent {type === 'all' ? 'Transactions' : type + 's'}</h3>
-                {type === 'expense' && (
-                    <select
-                        value={filterSource}
-                        onChange={(e) => setFilterSource(e.target.value)}
-                        className="h-8 rounded-md border border-input bg-background px-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                        {allPaymentSources.map(s => (
-                            <option key={s} value={s}>{s === 'All' ? 'All Sources' : s}</option>
-                        ))}
-                    </select>
-                )}
+
+                <div className="flex flex-wrap items-center gap-2">
+                    {/* Type Filter - Only show if page type is 'all' */}
+                    {type === 'all' && (
+                        <select
+                            value={filterType}
+                            onChange={(e) => {
+                                setFilterType(e.target.value as 'all' | 'income' | 'expense');
+                                setFilterSource('All');
+                            }}
+                            className="h-8 rounded-md border border-input bg-background px-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                            <option value="all">All Types</option>
+                            <option value="income">Income</option>
+                            <option value="expense">Expense</option>
+                        </select>
+                    )}
+
+                    {/* Source Filter - Show if a specific type is active (either via prop or filter) */}
+                    {filterType !== 'all' && (
+                        <select
+                            value={filterSource}
+                            onChange={(e) => setFilterSource(e.target.value)}
+                            className="h-8 rounded-md border border-input bg-background px-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                            {availableSources.map((s, i) => (
+                                <option key={`${s}-${i}`} value={s}>{s === 'All' ? 'All Sources' : s}</option>
+                            ))}
+                        </select>
+                    )}
+                </div>
             </div>
 
             {filteredTransactions.length === 0 ? (
                 <div className="text-center p-8 text-muted-foreground border rounded-lg border-dashed">
-                    No transactions found.
+                    No transactions found matching your filters.
                 </div>
             ) : (
-                <div className="border rounded-lg overflow-hidden">
-                    <table className="w-full text-sm text-left">
+                <div className="border rounded-lg overflow-hidden overflow-x-auto">
+                    <table className="w-full text-sm text-left min-w-[600px]">
                         <thead className="bg-muted text-muted-foreground">
                             <tr>
                                 <th className="px-4 py-3 font-medium">Date</th>
@@ -87,8 +118,8 @@ export function TransactionList({ type }: TransactionListProps) {
                                         </span>
                                     </td>
                                     <td className="px-4 py-3">
-                                        {t.type === 'income' ? t.source : t.category}
-                                        {t.paymentSource && <span className="text-xs text-muted-foreground block">via {t.paymentSource}</span>}
+                                        <div className="font-medium">{t.type === 'income' ? t.source : t.category}</div>
+                                        {t.paymentSource && <div className="text-xs text-muted-foreground">via {t.paymentSource}</div>}
                                     </td>
                                     <td className="px-4 py-3 text-right font-medium">
                                         {new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR' }).format(t.amount)}

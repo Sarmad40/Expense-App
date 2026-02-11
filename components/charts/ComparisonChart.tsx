@@ -7,13 +7,13 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 */
 
 interface ComparisonChartProps {
-    data: any[];
+    data: unknown[];
     data1Label: string;
     data2Label: string;
 }
 
 export default function ComparisonChart({ data, data1Label, data2Label }: ComparisonChartProps) {
-    const formatCurrency = (val: number) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(val);
+    // const formatCurrency = (val: number) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(val);
 
     return (
         <div className="w-full h-full flex items-center justify-center bg-muted/20 rounded-lg">

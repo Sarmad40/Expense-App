@@ -1,6 +1,6 @@
 
-import { Transaction, MonthlyData } from '@/types';
-import { startOfMonth, endOfMonth, isWithinInterval, parseISO, format } from 'date-fns';
+import { Transaction } from '@/types';
+import { startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
 
 export function getMonthlySummary(transactions: Transaction[], date: Date) {
     const start = startOfMonth(date);

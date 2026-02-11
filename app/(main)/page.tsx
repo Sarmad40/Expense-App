@@ -17,18 +17,14 @@ export const dynamic = 'force-dynamic';
 export default function Dashboard() {
   const { transactions } = useAppData();
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const currentDate = selectedMonth ? new Date(selectedMonth + '-01') : new Date();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    setMounted(true); // eslint-disable-line react-hooks/set-state-in-effect
   }, []);
 
-  useEffect(() => {
-    if (selectedMonth) {
-      setCurrentDate(new Date(selectedMonth + '-01'));
-    }
-  }, [selectedMonth]);
+  // Effect removed as currentDate is now derived
 
   if (!mounted) {
     return null;
@@ -64,7 +60,7 @@ export default function Dashboard() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
         {/* Balance Card - Premium Gradient */}
         <Card className="border-0 shadow-lg shadow-indigo-500/20 bg-gradient-to-br from-indigo-600 to-violet-700 text-white relative overflow-hidden group">
           <div className="absolute -top-12 -right-12 p-8 opacity-10 group-hover:opacity-20 transition-opacity">

@@ -13,12 +13,28 @@ interface DashboardChartsProps {
     transactions: Transaction[];
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#64748b'];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-white p-3 border border-slate-100 shadow-xl rounded-xl text-xs">
+                <p className="font-semibold text-slate-700 mb-1">{payload[0].name}</p>
+                <p className="text-indigo-600 font-bold text-sm">
+                    {new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(payload[0].value)}
+                </p>
+            </div>
+        );
+    }
+    return null;
+};
 
 export function DashboardCharts({ transactions }: DashboardChartsProps) {
     // Helper to process data and group small values into "Other"
     const processData = (items: Transaction[], type: 'income' | 'expense', key: 'source' | 'category' | 'paymentSource') => {
         const counts = items.reduce((acc, t) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const label = (t as any)[key] || 'Other';
             acc[label] = (acc[label] || 0) + t.amount;
             return acc;
@@ -50,7 +66,7 @@ export function DashboardCharts({ transactions }: DashboardChartsProps) {
     const formatCurrency = (val: number) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(val);
 
     // Premium Color Palette
-    const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#64748b'];
+    // const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#64748b'];
 
     if (transactions.length === 0) {
         return (
@@ -66,19 +82,7 @@ export function DashboardCharts({ transactions }: DashboardChartsProps) {
         )
     }
 
-    const CustomTooltip = ({ active, payload }: any) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="bg-white p-3 border border-slate-100 shadow-xl rounded-xl text-xs">
-                    <p className="font-semibold text-slate-700 mb-1">{payload[0].name}</p>
-                    <p className="text-indigo-600 font-bold text-sm">
-                        {formatCurrency(payload[0].value)}
-                    </p>
-                </div>
-            );
-        }
-        return null;
-    };
+    // CustomTooltip moved outside
 
     return (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -87,14 +91,14 @@ export function DashboardCharts({ transactions }: DashboardChartsProps) {
                 <CardHeader>
                     <CardTitle className="text-sm font-medium text-slate-600">Income Sources</CardTitle>
                 </CardHeader>
-                <CardContent className="h-[300px]">
+                <CardContent className="h-[350px]">
                     {incomeData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
                                     data={incomeData}
                                     cx="50%"
-                                    cy="50%"
+                                    cy="40%"
                                     innerRadius={60}
                                     outerRadius={80}
                                     paddingAngle={5}
@@ -108,7 +112,6 @@ export function DashboardCharts({ transactions }: DashboardChartsProps) {
                                 <Tooltip content={<CustomTooltip />} />
                                 <Legend
                                     verticalAlign="bottom"
-                                    height={36}
                                     iconType="circle"
                                     formatter={(value) => <span className="text-xs text-slate-500 ml-1">{value}</span>}
                                 />
@@ -128,14 +131,14 @@ export function DashboardCharts({ transactions }: DashboardChartsProps) {
                 <CardHeader>
                     <CardTitle className="text-sm font-medium text-slate-600">Expense Categories</CardTitle>
                 </CardHeader>
-                <CardContent className="h-[300px]">
+                <CardContent className="h-[350px]">
                     {expenseData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
                                     data={expenseData}
                                     cx="50%"
-                                    cy="50%"
+                                    cy="40%"
                                     innerRadius={60}
                                     outerRadius={80}
                                     paddingAngle={5}
@@ -149,7 +152,6 @@ export function DashboardCharts({ transactions }: DashboardChartsProps) {
                                 <Tooltip content={<CustomTooltip />} />
                                 <Legend
                                     verticalAlign="bottom"
-                                    height={36}
                                     iconType="circle"
                                     formatter={(value) => <span className="text-xs text-slate-500 ml-1">{value}</span>}
                                 />

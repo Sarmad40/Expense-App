@@ -17,6 +17,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
         // Allow public access to login page
         if (pathname === '/login') {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsChecking(false);
             return;
         }

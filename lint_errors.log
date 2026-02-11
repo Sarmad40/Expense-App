@@ -1,0 +1,90 @@
+
+> expense-app@0.1.0 lint
+> eslint
+
+
+E:\Expense App\app\(main)\profile\page.tsx
+  94:46  error  Parsing error: ')' expected
+
+E:\Expense App\components\auth\ProtectedRoute.tsx
+  30:4  error  Parsing error: ',' expected
+
+E:\Expense App\components\charts\ComparisonChart.tsx
+  15:43  warning  'data' is defined but never used        @typescript-eslint/no-unused-vars
+  15:49  warning  'data1Label' is defined but never used  @typescript-eslint/no-unused-vars
+  15:61  warning  'data2Label' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Expense App\components\dashboard\DashboardCharts.tsx
+  18:45  error    Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+  36:33  error    Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+  64:11  warning  'formatCurrency' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+E:\Expense App\components\dashboard\IncomeBreakdown.tsx
+  49:27  warning  'incomePercent' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+E:\Expense App\components\dashboard\TransactionList.tsx
+  35:8  warning  React Hook React.useMemo has an unnecessary dependency: 'customIncomeSources'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+E:\Expense App\components\forms\ExpenseForm.tsx
+   6:10  warning  'IncomeSource' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+  53:8   warning  React Hook useEffect has a missing dependency: 'allCategories'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+E:\Expense App\components\forms\IncomeForm.tsx
+  35:8  warning  React Hook useEffect has a missing dependency: 'defaultSources'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+E:\Expense App\components\providers\AppProvider.tsx
+  38:12  warning  'isLoaded' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  43:13  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+E:\Expense App\components\providers\AppProvider.tsx:43:13
+  41 |     useEffect(() => {
+  42 |         if (!isAuthenticated || !user) {
+> 43 |             setTransactions([]);
+     |             ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  44 |             setCustomCategories([]);
+  45 |             setCustomIncomeSources([]);
+  46 |             setIsLoaded(false);  react-hooks/set-state-in-effect
+  54:52  warning  'transactionsError' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  80:50  warning  'categoriesError' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  90:47  warning  'sourcesError' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+
+E:\Expense App\components\providers\AuthProvider.tsx
+  40:21  error  Error: Cannot access variable before it is declared
+
+`handleSession` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+E:\Expense App\components\providers\AuthProvider.tsx:40:21
+  38 |                         await supabase.auth.signOut();
+  39 |                     }
+> 40 |                     handleSession(null);
+     |                     ^^^^^^^^^^^^^ `handleSession` accessed before it is declared
+  41 |                 } else {
+  42 |                     handleSession(session);
+  43 |                 }
+
+E:\Expense App\components\providers\AuthProvider.tsx:61:5
+  59 |     }, []);
+  60 |
+> 61 |     const handleSession = (session: Session | null) => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 62 |         if (session?.user) {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 63 |             const newUser: User = {
+     …
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 73 |         }
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 74 |     };
+     | ^^^^^^^ `handleSession` is declared here
+  75 |
+  76 |     const loginWithEmail = async (email: string, pass: string) => {
+  77 |         setLoading(true);  react-hooks/immutability
+
+✖ 19 problems (6 errors, 13 warnings)
+

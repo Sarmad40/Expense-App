@@ -1,0 +1,38 @@
+
+> expense-app@0.1.0 lint
+> eslint
+
+
+E:\Expense App\app\(main)\profile\page.tsx
+  94:46  error  Parsing error: ')' expected
+
+E:\Expense App\components\charts\ComparisonChart.tsx
+  15:43  warning  'data' is defined but never used        @typescript-eslint/no-unused-vars
+  15:49  warning  'data1Label' is defined but never used  @typescript-eslint/no-unused-vars
+  15:61  warning  'data2Label' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\Expense App\components\dashboard\DashboardCharts.tsx
+  18:45  error    Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+  65:11  warning  'formatCurrency' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+E:\Expense App\components\dashboard\IncomeBreakdown.tsx
+  49:27  warning  'incomePercent' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+E:\Expense App\components\dashboard\TransactionList.tsx
+  35:8  warning  React Hook React.useMemo has an unnecessary dependency: 'customIncomeSources'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+E:\Expense App\components\forms\ExpenseForm.tsx
+   6:10  warning  'IncomeSource' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+  53:8   warning  React Hook useEffect has a missing dependency: 'allCategories'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+E:\Expense App\components\forms\IncomeForm.tsx
+  35:8  warning  React Hook useEffect has a missing dependency: 'defaultSources'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+E:\Expense App\components\providers\AppProvider.tsx
+  38:12  warning  'isLoaded' is assigned a value but never used           @typescript-eslint/no-unused-vars
+  55:52  warning  'transactionsError' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  81:50  warning  'categoriesError' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  91:47  warning  'sourcesError' is assigned a value but never used       @typescript-eslint/no-unused-vars
+
+✖ 15 problems (2 errors, 13 warnings)
+

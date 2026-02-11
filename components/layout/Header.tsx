@@ -25,7 +25,7 @@ export function Header() {
     return (
         <header className="flex items-center justify-between mb-8 pb-4 border-b">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
                     {getTitle()}
                 </h1>
                 <p className="text-sm text-muted-foreground mt-1">

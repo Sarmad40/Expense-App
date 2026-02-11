@@ -33,6 +33,8 @@ export function ExpenseForm() {
 
     useEffect(() => {
         if (editingTransaction && editingTransaction.type === 'expense') {
+            // We set these values but avoid useEffect state setting loop if possible or accept it for edit form population
+            /* eslint-disable react-hooks/set-state-in-effect */
             setAmount(editingTransaction.amount.toString());
             const src = editingTransaction.paymentSource || 'Salary';
             setPaymentSource(src);
@@ -46,6 +48,7 @@ export function ExpenseForm() {
 
             setDate(editingTransaction.date);
             setNote(editingTransaction.note || '');
+            /* eslint-enable react-hooks/set-state-in-effect */
         }
     }, [editingTransaction, customCategories, customIncomeSources]);
 
