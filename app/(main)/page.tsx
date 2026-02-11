@@ -8,6 +8,7 @@ import { getMonthlySummary } from '@/lib/analytics';
 import { ArrowUp, ArrowDown, Wallet, CalendarRange } from 'lucide-react';
 import { format, isSameMonth, parseISO } from 'date-fns';
 import nextDynamic from 'next/dynamic';
+import Link from 'next/link';
 
 const DashboardCharts = nextDynamic(() => import('@/components/dashboard/DashboardCharts').then(mod => mod.DashboardCharts), { ssr: false });
 
@@ -141,9 +142,12 @@ export default function Dashboard() {
               <CardTitle className="text-lg font-bold text-slate-800">Recent Transactions</CardTitle>
               <CardDescription className="text-slate-500">Your latest financial movements</CardDescription>
             </div>
-            <button className="text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg transition-colors">
+            <Link
+              href="/transactions"
+              className="text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg transition-colors"
+            >
               View All
-            </button>
+            </Link>
           </div>
         </CardHeader>
         <CardContent className="p-0">

@@ -7,29 +7,39 @@ import { Transaction } from '@/types';
 import { Trash2, Edit } from 'lucide-react';
 
 interface TransactionListProps {
-    type: 'income' | 'expense';
+    type: 'income' | 'expense' | 'all';
 }
 
 export function TransactionList({ type }: TransactionListProps) {
     const { transactions, deleteTransaction, setEditingTransaction, customIncomeSources } = useAppData();
     const [filterSource, setFilterSource] = React.useState<string>('All');
+    const [filterType, setFilterType] = React.useState<'all' | 'income' | 'expense'>('all'); // Internal filter for 'all' mode
 
     const defaultSources = ['Salary', 'Freelance', 'Family', 'Credit Card'];
     const allPaymentSources = ['All', ...defaultSources, ...customIncomeSources];
 
     const filteredTransactions = transactions
-        .filter((t) => t.type === type)
+        .filter((t) => type === 'all' ? true : t.type === type)
         .filter((t) => {
-            if (type === 'income') return true; // No payment source filter for income list usually
-            if (filterSource === 'All') return true;
-            return t.paymentSource === filterSource;
+            // If type is 'all', we might want internal type filtering too? For now let's keep it simple or align with 'expense' filter logic if needed.
+            // But the original code only filtered paymentSource for expenses.
+            // Let's keep paymentSource filter only active if we are strictly looking at expenses OR if the transaction IS an expense?
+            // Simpler: Only show filter dropdown if type is 'expense'. 
+
+            // If we want to filter by payment source in 'all' view, it's complicated because income doesn't have it.
+            // So for 'all' view, let's just disable payment source filter for now to keep it simple, or only apply it to expenses.
+
+            if (type === 'expense' && filterSource !== 'All') {
+                return t.paymentSource === filterSource;
+            }
+            return true;
         })
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    if (transactions.filter(t => t.type === type).length === 0) {
+    if (transactions.filter(t => type === 'all' ? true : t.type === type).length === 0) {
         return (
             <div className="text-center p-8 text-muted-foreground border rounded-lg border-dashed">
-                No {type} transactions found.
+                No {type === 'all' ? 'transactions' : type + 's'} found.
             </div>
         );
     }
@@ -37,7 +47,7 @@ export function TransactionList({ type }: TransactionListProps) {
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium capitalize">Recent {type}s</h3>
+                <h3 className="text-lg font-medium capitalize">Recent {type === 'all' ? 'Transactions' : type + 's'}</h3>
                 {type === 'expense' && (
                     <select
                         value={filterSource}
@@ -53,7 +63,7 @@ export function TransactionList({ type }: TransactionListProps) {
 
             {filteredTransactions.length === 0 ? (
                 <div className="text-center p-8 text-muted-foreground border rounded-lg border-dashed">
-                    No expenses found for this source.
+                    No transactions found.
                 </div>
             ) : (
                 <div className="border rounded-lg overflow-hidden">
@@ -61,6 +71,7 @@ export function TransactionList({ type }: TransactionListProps) {
                         <thead className="bg-muted text-muted-foreground">
                             <tr>
                                 <th className="px-4 py-3 font-medium">Date</th>
+                                <th className="px-4 py-3 font-medium">Type</th>
                                 <th className="px-4 py-3 font-medium">Source/Category</th>
                                 <th className="px-4 py-3 font-medium text-right">Amount</th>
                                 <th className="px-4 py-3 font-medium text-right">Actions</th>
@@ -70,8 +81,13 @@ export function TransactionList({ type }: TransactionListProps) {
                             {filteredTransactions.map((t) => (
                                 <tr key={t.id} className="hover:bg-muted/50">
                                     <td className="px-4 py-3">{t.date}</td>
+                                    <td className="px-4 py-3 capitalize">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${t.type === 'income' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                                            {t.type}
+                                        </span>
+                                    </td>
                                     <td className="px-4 py-3">
-                                        {type === 'income' ? t.source : t.category}
+                                        {t.type === 'income' ? t.source : t.category}
                                         {t.paymentSource && <span className="text-xs text-muted-foreground block">via {t.paymentSource}</span>}
                                     </td>
                                     <td className="px-4 py-3 text-right font-medium">
